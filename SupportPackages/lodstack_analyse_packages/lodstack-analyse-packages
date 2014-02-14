@@ -319,7 +319,7 @@ function process_packages {
 		BNAME=`basename ${b} .tgz`
 		# PERFORM Additional tests (not 12.04 version)
 		# OPTS=" --install-remove-install"
-		piuparts ${i} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
+		piuparts --apt ${i} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
 		
 		build_from_src ${i} ${BNAME}
 	    done
