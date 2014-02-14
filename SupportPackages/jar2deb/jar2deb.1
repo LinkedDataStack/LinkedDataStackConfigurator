@@ -1,9 +1,8 @@
 .TH jar2deb 1  "07/2013" "version 1.0" "USER COMMANDS"
 .SH NAME
-jar2deb \- [options]* 
+jar2deb \- generates a binary debian package for a given JAR file.
 .SH SYNOPSIS
-.B jar2deb
-[option]
+.B jar2deb [option]*
 .SH DESCRIPTION
 .TP
 h               - this message
@@ -35,7 +34,11 @@ jar2deb -P jar2deb -V 0.1 -J jar2deb.jar
 Serveral options not yet handled.
 .SH AUTHOR
 .SS Paul Massey <paul.massey@tenforce.com>
+.SH ENVIRONMENT
+.P
+DENNAME and DEBEMAIL
 .SH SEE ALSO
+jar, dpkg-deb, dpkg, maven
 .SS https://github.com/XXXX/jar2deb
 .TP
 The main homepage at github
