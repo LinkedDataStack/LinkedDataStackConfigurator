@@ -1,0 +1,391 @@
+#!/bin/bash
+#############################################################################
+# Author  : P.A.Massey
+# Date    : 2014
+# Org     : Tenforce
+# Purpose : Use piuparts and lintian to validate the packages and gather
+#           the results together in a simply summary format (csv).
+#
+# Setup   : Setting up this is via the use of the pbuilder facilities, ie.
+#
+#           1./ sudo pbuilder --create \
+#                             --basetgz /var/cache/pbuilder/base-testing.tgz
+#           2./ sudo pbuilder --update \
+#                             --basetgz /var/cache/pbuilder/base-testing.tgz
+#           3./ sudo pbuilder --login --save-after-login \
+#                             --basetgz /var/cache/pbuilder/base-testing.tgz
+#               $ apt-get install wget
+#               $ wget  http://stack.lod2.eu/lod2testing-repository.deb
+#               $ dpkg -i lod2testing-repository.deb
+#               $ apt-get update
+#               $ exit the shell...
+#               .... and so on for the other base setups required.
+#           4./ packages to be tested should downloaded and placed in 'packages'
+#
+#############################################################################
+# Default Values
+#
+RUNDATE=`date +%Y/%m/%d`
+LOGDIR=${RUNDATE}/logs
+SRCDIR=${RUNDATE}/srcdir
+
+#############################################################################
+
+function help {
+    echo $0 " -i -l -h -s
+      -h           : this message
+      -v           : verbose
+      -i <dir>     : incoming packages directory
+      -l <dir>     : log files directory
+      -p <version> : run piuparts test tool
+      -C           : remove the SRCDIR at the end of the process (save space!)
+      -L           : run lintian tests
+      -F <fmt>     : output can be as HTML or CSV format
+      -B           : source build tests
+      -s           : verify the signatures (default: no)
+      -S           : source directory for getting the DSC/SOURCES (${SRCDIR})
+      -f <file>    : file contains a list of package names
+";
+    exit 1;
+}
+
+#############################################################################
+#
+PROCESS=yes
+PACKAGELIST=
+PACKAGEDIR=packages
+if [ -d "${PACKAGEDIR}" ]
+then
+    PACKAGES=${PACKAGEDIR}/*.deb
+fi
+DOWNLOADTEST=no
+SP="|"
+VERIFYSIGS=no
+if [ `whoami` = "root" ] 
+then
+    LINTIAN=no
+    PIUPARTS=yes
+else
+    LINTIAN=yes
+    PIUPARTS=no
+fi
+CLEANUP=no
+SRCBUILD=no
+REPORTFMT=csv
+PBBASEDIR="/var/cache/pbuilder"
+BASETGZS="base-testing base-stable"
+
+#############################################################################
+# recover and setup all the necessary variables
+while getopts "hCvi:lspLBf:S:db:P:xF" arg; do
+    case $arg in
+        h) help ;;
+	v) set -x ;;
+	x) PROCESS=no ;;
+        p) PIUPARTS=yes ; DOWNLOADTEST=yes ;;
+        s) VERIFYSIGS=yes ;;
+	L) LINTIAN=yes ;;
+        B) SRCBUILD=yes ; DOWNLOADTEST=yes ;;
+	d) DOWNLOADTEST=yes ;;
+	C) CLEANUP=yes ;;
+	b) shift ; BASETGZS=$1 ;;
+        i) shift ; PACKAGEDIR=$1 ; PACKAGES=${PACKAGEDIR}/*.deb ;;
+        P) shift ; PACKAGES=$1 ;;
+	l) shift ; LOGDIR=$1 ;;
+	S) shift ; SRCDIR=$1 ;;
+        f) shift ; PACKAGELIST=$1; PACKAGES=`cat ${PACKAGELIST}` ;;
+	F) shift ; REPORTFMT=$1 ;;
+	*) help ;;
+      esac
+done
+
+RESULTSFILE=${RESULTSFILE:-${LOGDIR}/results.${REPORTFMT}}
+
+#############################################################################
+# 
+
+function hasvalue {
+    if grep -q "$1" $2
+    then
+	echo "yes"
+    else
+	echo "no"
+    fi
+}
+
+#############################################################################
+# 
+function hasvalueCount {
+    echo `grep "$1" $2 | wc -l`
+}
+
+#############################################################################
+# 
+
+function convert_value {
+    if [[ "$2" =~ href:* ]]
+    then
+	case $1 in
+	    csv)  echo $2 | awk -F: '{print $3;}' ;;
+	    html) echo $2 | awk -F: '$3 != "PASS" && $3 != "0" {print "<a href=\""$2"\">"$3"</a>";} $3 == "PASS"||$3=="0" {print $3;}' ;;
+    	       *) exit 1 ;;
+	esac
+    else
+	echo $2
+    fi
+}
+
+function dump_result_line { # fmt ...
+    # Iterate over the parameters to the function (doesn't matter how many).
+    FMT=$1; shift;
+    LINE="";
+    case ${FMT} in
+	csv|csv-header) for i in $@
+	     do
+	        # This is okay for the csv format.
+	        VAL=`convert_value ${FMT} ${i}`
+	        LINE+="${SP}${VAL}"
+	     done ;;
+       html) 
+	    LINE+="<TR>"; 
+	     for i in $@
+	     do
+	        # This is okay for the csv format.
+	        VAL=`convert_value ${FMT} ${i}`
+	        LINE+="<TD>${VAL}</TD>"
+	     done ;
+	     LINE+="</TR>";;
+       html-header) 
+	    LINE+="<THEAD><TR>"; 
+	    for i in $@
+	    do
+	        # This is okay for the csv format.
+	        VAL=`convert_value ${FMT} ${i}`
+	        LINE+="<TH align=\"left\">${VAL}</TH>"
+	     done ;
+	     LINE+="</TR></THEAD>";;
+          *) 
+	     exit 1 ;;
+    esac
+    echo "${LINE}"
+}
+
+function dump_header {
+    case $1 in
+	csv) ;;
+       html) echo "<HTML><BODY><H1>LOD Stack - Package Analysis Results</H1><TABLE>" ;;
+	  *) ;;
+    esac
+}
+
+function dump_footer {
+    case $1 in
+	csv) ;;
+       html) echo "</TABLE><HR/><P>[<A href=\"results.csv\">Datafile</A>, <A href=\"lintian.csv\">Lintian Message Summary</A>]</P><P>Created:"`date`"<BR/>("`uname -a`")</P></BODY></HTML>" ;;
+	  *) ;;
+    esac
+}
+
+#############################################################################
+# Everything should be present, so this is just an analysis of the resulting
+# state and construction of the results line.
+#
+function dump_details {
+    FMT=$1
+    PKG=$2
+    PASSFAIL=
+    BUILT=
+    ERRS=
+    WRNS=
+    DSCACC=no
+
+    # Iterate over all the base environments and look at the results.
+    # If nothing found, the report unknown, otherwise the table will 
+    # get messsed up.
+    for base in ${BASETGZS}
+    do
+	if [ -f "${SRCDIR}/${base}/${PKG}" ] 
+	then
+	   BUILT+="YES "
+	else
+	   BUILT+="NO "	    
+	fi
+    done
+
+    for base in ${BASETGZS}
+    do
+	if [ -f "${LOGDIR}/${PKG}.${base}.log" ] 
+	then
+	    PASS=`hasvalue PASS ${LOGDIR}/${PKG}.${base}.log`
+	    DETAILS="href:${PKG}.${base}.log"
+	    if [ "x${PASS}x" = "xyesx" ] 
+	    then 
+		PASSFAIL+="${DETAILS}:PASS "
+	    else
+		FAIL=`hasvalue FAIL ${LOGDIR}/${PKG}.${base}.log`
+		PASSFAIL+="${DETAILS}:FAIL "
+	    fi
+	else
+	    PASSFAIL+="unknown "	    
+	fi
+    done
+
+    # Check for Lintian problems.
+    if [ -f "${LOGDIR}/${PKG}.lintian" ]
+    then
+	ERRS="href:${PKG}.lintian:"`hasvalueCount "E:" ${LOGDIR}/${PKG}.lintian`
+	WRNS="href:${PKG}.lintian:"`hasvalueCount "W:" ${LOGDIR}/${PKG}.lintian`
+    fi
+
+    BNAME=`basename ${PKG} "+nmu1_all.deb"`
+    BNAME=`basename $BNAME "_amd64.deb"`
+    BNAME=`basename $BNAME "_all.deb"`
+    if [ -f "${SRCDIR}/${BNAME}.dsc" ]
+    then
+	DSCACC=yes
+    fi
+
+    dump_result_line ${FMT} `date +"%Y/%m/%d"` ${PKG} \
+                     ${PASSFAIL:-unknown} ${ERRS:-unknown} \
+                     ${WRNS:-unknown} ${DSCACC} ${BUILT:-error}
+}
+
+#############################################################################
+# build_from_src: Will attempt to rebuild the package from the source
+#                 components (doens't mean it can be installed). Clean up
+#                 of the directory will also be done once the package
+#                 has been built.
+
+function build_from_src {
+    if [ "${SRCBUILD}" = "yes" ]
+    then
+	mkdir -p ${SRCDIR}/$2
+	DSC=`basename $1 +nmu1_all.deb`
+	DSC=`basename ${DSC} _amd64.deb`
+	DSC=`basename ${DSC} _all.deb`
+	DSC=`basename ${DSC} .deb`.dsc
+	echo "build_from_src $1 $2 ${DSC}" 
+	# The order could be changed to be stricter,
+	# but the build is just a test that the build works
+	( cd ${SRCDIR} ; 
+	  pbuilder --build --buildresult $2 --basetgz ${PBBASEDIR}/$2.tgz ${DSC} ;
+	  pbuilder --clean --basetgz ${PBBASEDIR}/$2.tgz ${DSC} )
+    fi
+}
+
+#############################################################################
+# download_test: will recover the necessary source files to build package.
+#
+function download_test {
+    PART=`echo $1 | awk -F_ '{print $1;}'`
+    ( cd ${SRCDIR} ; apt-get source $PART )
+}
+
+#############################################################################
+
+function process_packages {
+  if [ "${PROCESS}" = "yes" ]
+  then
+    mkdir -p ${LOGDIR}
+    for i in ${PACKAGES}
+    do 
+	FILE=`basename ${i}`;
+	# echo "**** testing ${FILE} *****"
+	if [ "${VERIFYSIGS}" = "yes" ]
+	then
+	    VERIFYSIGSOPT=""
+	else
+	    VERIFYSIGSOPT="--do-not-verify-signatures"
+	fi
+
+	if [ "$DOWNLOADTEST" = "yes" ]
+	then
+	    download_test ${FILE}
+	fi
+
+	if [ "$PIUPARTS" = "yes" ]
+	then
+	    # Run the test of the package for each of the built environments
+	    # - this will likely fail for the stable (with testing packages).
+	    #
+	    for b in ${BASETGZS}
+	    do
+		# Strip off the .tgz, just in case it was added.
+		BNAME=`basename ${b} .tgz`
+		# PERFORM Additional tests (not 12.04 version)
+		# OPTS=" --install-remove-install"
+		piuparts ${i} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
+		
+		build_from_src ${i} ${BNAME}
+	    done
+	fi
+
+	if [ "$LINTIAN" = "yes" ]
+	then
+	    lintian ${i} > ${LOGDIR}/${FILE}.lintian
+	fi
+	# So something is visible when processing
+	dump_details csv ${FILE}
+    done
+  fi
+}
+
+#############################################################################
+# Summary the results which have been gathered so far.
+function construct_report { # fmt resultsfile
+    echo construct_report $1 $2
+    ( 
+	dump_header $1
+	BUILDS=`echo ${BASETGZS} | sed s/base/build/g`
+	INSPRG=`echo ${BASETGZS} | sed s/base/inst-purge/g`
+	dump_result_line $1-header "TimeStamp" "Package" ${INSPRG} "LintErrs" \
+            "LintWarn" "DSCAccess" ${BUILDS}
+	for i in ${PACKAGES}
+	do 
+	    FILE=`basename ${i}`
+	    dump_details $1 ${FILE}
+	done
+	dump_footer $1
+    ) > $2
+}
+
+#############################################################################
+# Cleanup all the files in SRCDIR, but only at the end of the run after the
+# report has been generated.
+#
+
+function cleanup {
+    if [ "$CLEANUP" = "yes" ]
+    then
+	rm -rf ${SRCDIR}
+    fi
+}
+
+#############################################################################
+
+function lintian_summaries {
+    PROB=`cat ${LOGDIR}/*.lintian|awk -F: '{print $3;}'|awk '{print $1;}'|sort|uniq`
+    for i in ${PROB}
+    do 
+	Errors=`egrep ${i} ${LOGDIR}/*.lintian | wc -l`
+	dump_result_line csv `date +"%Y/%m/%d"` ${i} ${Errors}
+    done > ${LOGDIR}/lintian.csv
+}
+
+#############################################################################
+#                             MAIN Program                                  #
+#############################################################################
+# Loop over each of the packages in the list/file and perform the identified
+# tests on them (depending on the options). The same list of packages is then
+# used for gathering the results.
+#
+process_packages 
+for i in csv ${REPORTFMT}
+do
+    RESULTSFILE=${LOGDIR}/results.${i}
+    construct_report $i ${RESULTSFILE}
+done
+lintian_summaries
+cleanup
+exit 0
+#############################################################################

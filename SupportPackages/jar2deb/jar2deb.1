@@ -1,0 +1,43 @@
+.TH jar2deb 1  "07/2013" "version 1.0" "USER COMMANDS"
+.SH NAME
+jar2deb \- [options]* 
+.SH SYNOPSIS
+.B jar2deb
+[option]
+.SH DESCRIPTION
+.TP
+h               - this message
+.TP
+v               - verbose
+.TP
+A <artifactid>  - artifactid
+.TP
+G <groupid>     - groupid
+.TP
+V <versionid>   - JAR file version
+.TP
+M <maintainer>  - The name of the maintainer
+.TP
+H <homepage>    - URL of the homepage
+.TP
+D <description> - Description of the Package (default will be included)
+.TP
+P <packageid>   - PackageID to use
+.TP
+J <jarfile>     - The jarfile to be put in the package.
+.PP
+Will create the binary debian package for installing the <jarfile>.
+.SH EXAMPLE
+.TP
+jar2deb -P jar2deb -V 0.1 -J jar2deb.jar
+.SH BUGS
+.TP
+Serveral options not yet handled.
+.SH AUTHOR
+.SS Paul Massey <paul.massey@tenforce.com>
+.SH SEE ALSO
+.SS https://github.com/XXXX/jar2deb
+.TP
+The main homepage at github
+
+

@@ -1,0 +1,181 @@
+#!/bin/bash
+# Author  : P.A.Massey (paul.massey@tenforce.com)
+# Date    : 10/02/2014
+# Purpose : Given a JAR - convert it into a .DEB package which can be 
+#           installed.
+
+#############################################################################
+
+function help {
+    echo $0 " -i -l -h -s
+      -h               : this message
+      -v               : verbose
+      -A <artifactid>  : artifactid
+      -G <groupid>     : groupid
+      -V <versionid>   : JAR file version
+      -M <maintainer>  : The name of the maintainer
+      -H <homepage>    : URL of the homepage
+      -D <description> : Description of the Package (default will be included)
+      -P <packageid>   : PackageID to use
+      -J <jarfile>     : The jarfile to be put in the package.
+" 
+    exit 1;
+}
+
+#############################################################################
+MAINTAINER=${DEBNAME}
+
+while getopts "hvaA:G:V:M:H:D:P:J:" arg; do
+    case $arg in
+        h) shift ; help ;;
+	v) shift ; set -x ;;
+	A) shift ; ARTIFACTID=$1 ; shift ;;
+	G) shift ; GROUPID=$1 ; shift ;;
+	V) shift ; VERSIONID=$1 ; shift ;;
+	M) shift ; MAINTAINER=$1 ; shift ;;
+	H) shift ; HOMEPAGE=$1 ; shift ;;
+	D) shift ; DESCRIPTION=$1 ; shift ;;
+	P) shift ; PACKAGEID=$1 ; shift ;;
+	J) shift ; JARFILE=$1 ; shift ;;
+	*) shift ;  help ;;
+    esac
+    OPTIND=1;
+done
+
+echo "*** j${JARFILE} p${PACKAGEID} v${VERSIONID}"
+
+#############################################################################
+# Recover an attribute value from the JAR MANIFEST.MF file which will be
+# assumed to be unpacked already (in current directory).
+
+function getattribute_value {
+    LINE=`egrep $2 $1/META-INF/MANIFEST.MF`
+    echo $LINE | awk -F: '{print $2;}' -
+}
+
+#############################################################################
+# Create the basic BINARY control file, using the default values passed in.
+
+function create_binary_control {
+    local DEBIAN=$1
+    local PACKAGE=$2
+    local VERSIONID=$3
+    local MAINTAINER=$4
+    local DESCRIPTION=${DESCRIPTION}
+    echo "Package: ${PACKAGE:-unknown-package}
+Version: ${VERSIONID:-0.1}
+Section: java
+Priority: optional
+Architecture: all
+Maintainer: ${MAINTAINER:-unknown_maintainer}
+Description: ${DESCRIPTION:-Wrapper package for a JAR file}
+" > ${DEBIAN}/control
+}
+
+#############################################################################
+
+function create_debian {
+    local PNAME=$2
+    local PAUTH=${DEBNAME:-undef_DEBNAME}
+    local PEMAIL=${DEBEMAIL:-undef_DEBEMAIL}
+    local PVERSION=$3
+    mkdir -p DEBIAN
+    create_binary_control DEBIAN ${PNAME} ${PVERSION} ${PAUTH} ${PEMAIL}
+}
+
+#############################################################################
+
+function create_pom {
+    local LOCATION=$1
+    local GROUPID=$2
+    local ARTIFACTID=$3
+    local PACKAGE=$4
+    local VERSION=$5
+
+    echo "<?xml version='1.0' encoding='UTF-8'?>
+<project xmlns=\"http://maven.apache.org/POM/4.0.0\" 
+         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" 
+         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4_0_0.xsd\">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>${GROUPID}</groupId>
+	<artifactId>${ARTIFACTID}</artifactId>
+	<version>${VERSION}</version>
+	<packaging>jar</packaging>
+	<properties>
+		<debian.hasPackageVersion/>
+		<debian.originalVersion>${VERSION}</debian.originalVersion>
+		<debian.package>${PACKAGE}</debian.package>
+	</properties>
+	<name>Auto packaged JAR file</name>
+</project>
+" > ${LOCATION}/pom.xml
+}
+
+#############################################################################
+
+function build_package {
+    echo "build_package: start attempt - $1"
+    dpkg-deb --build $1
+}
+
+#############################################################################
+
+function validate_package {
+    echo "validate_package: not done"
+}
+
+#############################################################################
+
+function jar2deb { # jarfile 
+    injarfile=$1;
+    inbasejarfile=`basename ${injarfile} .jar`
+    tempdir=${inbasejarfile}-tmp
+
+    #########################################
+    mkdir ${tempdir}
+    ( cd ${tempdir} ; jar xf ../${injarfile} META-INF/MANIFEST.MF )
+    # These values are not always present so empty value will require
+    # option to fill it in.
+    projgrpid=`getattribute_value $tempdir Implementation-Vendor-Id`
+    projvsnid=`getattribute_value $tempdir Implementation-Version`
+    echo ${projgrpid:-$2} ${projartid:-unknown} ${projvsnid:-$3}
+    rm -rf ${tempdir}
+
+    ORIGMAINDIR=${projgrpid:-$2}-${projvsnid:-$3}
+
+    MAINDIR=lib${projgrpid:-$2}_${projvsnid:-$3}-java
+    echo orig-main-dir:${ORIGMAINDIR}
+    
+    #########################################
+    # Create the "fake original" structure
+
+    mkdir -p ${ORIGMAINDIR}/usr/share/java
+    cp ${injarfile} ${ORIGMAINDIR}/usr/share/java
+    
+    pushd ${ORIGMAINDIR}/usr/share/java > /dev/null ;
+     ln -s ${injarfile} ${projgrpid:-$2}.jar ;
+     mkdir -p ../maven-repo/${projgrpid:-$2}/debian
+     pushd  ../maven-repo/${projgrpid:-$2} > /dev/null
+      create_pom . ${projgrpid:-$2} ${projgrpid:-$2} ${MAINDIR} ${projvsnid:-$3}
+      ln -s ../../../java/${injarfile} debian/${projgrpid:-$2}.jar ;
+      create_pom debian ${projgrpid:-$2} ${projgrpid:-$2} ${MAINDIR} debian
+      ln -s ../../java/${injarfile} ${projgrpid:-$2}.jar 
+     popd > /dev/null
+     # tar cvzf ${ORIGMAINDIR}.orig.tgz ${ORIGMAINDIR} 
+    popd > /dev/null
+
+    #########################################    
+    # Now build the MAIN package structure
+    mv ${ORIGMAINDIR} ${MAINDIR}
+    ( cd ${MAINDIR}
+      create_debian ${MAINDIR} ${projgrpid:-$2} ${projvsnid:-$3} )
+
+    #########################################    
+    build_package ${MAINDIR} 
+    validate_package
+}
+
+#############################################################################
+jar2deb ${JARFILE} ${PACKAGEID} ${VERSIONID}
+exit 0
+#############################################################################

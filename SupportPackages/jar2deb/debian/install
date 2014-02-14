@@ -1,0 +1,3 @@
+jar2deb usr/bin
+jar2deb.1 usr/share/man/man1
+

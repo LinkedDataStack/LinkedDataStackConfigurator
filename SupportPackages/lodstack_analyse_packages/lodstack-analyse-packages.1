@@ -1,0 +1,46 @@
+.TH lodstack_analyse_packages 1  "02/2014" "version 1.0" "USER COMMANDS"
+.SH NAME
+lodstack_analyse_packaes \- [options]* 
+.SH SYNOPSIS
+.B lodstack_analyse_packages
+[option]
+.SH DESCRIPTION
+.TP
+h               - this message
+.TP
+v               - verbose
+.TP
+A <artifactid>  - artifactid
+.TP
+G <groupid>     - groupid
+.TP
+V <versionid>   - JAR file version
+.TP
+M <maintainer>  - The name of the maintainer
+.TP
+H <homepage>    - URL of the homepage
+.TP
+D <description> - Description of the Package (default will be included)
+.TP
+P <packageid>   - PackageID to use
+.TP
+J <jarfile>     - The jarfile to be put in the package.
+.PP
+Will create the binary debian package for installing the <jarfile>.
+.PP
+The script should be executed via a crontab, with one run as root
+and one as a normal user (for the Lintian checks).
+.SH EXAMPLE
+.TP
+lodstack_analyse_packages -P jar2deb -V 0.1 -J jar2deb.jar
+.SH BUGS
+.TP
+Serveral options not yet handled.
+.SH AUTHOR
+.SS Paul Massey <paul.massey@tenforce.com>
+.SH SEE ALSO
+.SS https://github.com/XXXX/lodstack_analyse_packages
+.TP
+The main homepage at github
+
+

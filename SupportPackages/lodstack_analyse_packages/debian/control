@@ -1,0 +1,15 @@
+Source: lodstack-analyse-packages
+Section: misc
+Priority: extra
+# Architecture: all
+Maintainer: Fred <fred@tenforce.com>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+# Homepage: https://github.com/AKSW/rdf-dataset-integration
+# Vcs-Git: git://github.com/AKSW/rdf-dataset-integration.git
+# Vcs-Browser: https://github.com/AKSW/rdf-dataset-integration
+
+Package: lodstack-analyse-packages
+Architecture: all
+Depends: pbuilder, lintian, piuparts, wget, dpkg, schroot, ${misc:Depends}
+Description: Does something.
