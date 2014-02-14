@@ -1,10 +1,19 @@
 .TH lodstack_analyse_packages 1  "02/2014" "version 1.0" "USER COMMANDS"
 .SH NAME
-lodstack_analyse_packaes \- [options]* 
+lodstack_analyse_packaes \- 
 .SH SYNOPSIS
-.B lodstack_analyse_packages
+.B lodstack_analyse_packages [options]* 
 [option]
 .SH DESCRIPTION
+For each package found in the "incoming package directory" an attempt
+is made to test whether it is installable or not (using piuparts). Then
+for each package Lintian is executed to see if there are any obvious 
+problems which need to be dealt with. Finally, an attempt is made to 
+build from source each of the packages in the appropriate environment.
+The environments need to be created beforehand. 
+.P
+Once the run is completed a report will be constructed in the appropriate 
+format (-F html or csv). The csv format is always produced.
 .TP
 -h               - this message (and the list of options)
 .TP
@@ -41,11 +50,14 @@ and one as a normal user (for the Lintian checks).
 which will generate run lintian, build the packages and create 
 the resport in html format.
 .SH BUGS
-.TP
-Several options not yet handled.
+.P
+Report bugs to <paul.massey@tenforce.com>
 .SH AUTHOR
-.SS Paul Massey <paul.massey@tenforce.com>
+.P
+Written by Paul Massey <paul.massey@tenforce.com>
 .SH SEE ALSO
+.P
+piuparts, pbuilder, schroot, lintian
 .SS
 https://github.com/LinkedDataStack/LinkedDataStackConfigurator/tree/master/SupportPackages/lodstack_analyse_packages
 .TP
