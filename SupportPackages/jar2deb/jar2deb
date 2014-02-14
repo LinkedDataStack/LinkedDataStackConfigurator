@@ -1,9 +1,9 @@
 #!/bin/bash
+#############################################################################
 # Author  : P.A.Massey (paul.massey@tenforce.com)
 # Date    : 10/02/2014
 # Purpose : Given a JAR - convert it into a .DEB package which can be 
 #           installed.
-
 #############################################################################
 
 function help {
