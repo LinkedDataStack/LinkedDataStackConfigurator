@@ -6,25 +6,29 @@ lodstack_analyse_packaes \- [options]*
 [option]
 .SH DESCRIPTION
 .TP
-h               - this message
+-h               - this message (and the list of options)
 .TP
-v               - verbose
+-v               - verbose
 .TP
-A <artifactid>  - artifactid
+      -i <dir>     - incoming packages directory
 .TP
-G <groupid>     - groupid
+      -l <dir>     : log files directory
 .TP
-V <versionid>   - JAR file version
+      -p <version> : run piuparts test tool
 .TP
-M <maintainer>  - The name of the maintainer
+      -C           : remove the SRCDIR at the end of the process (save space!)
 .TP
-H <homepage>    - URL of the homepage
+      -L           : run lintian tests
 .TP
-D <description> - Description of the Package (default will be included)
+      -F <fmt>     : output can be as HTML or CSV format
 .TP
-P <packageid>   - PackageID to use
+      -B           : source build tests
 .TP
-J <jarfile>     - The jarfile to be put in the package.
+      -s           : verify the signatures (default: no)
+.TP
+      -S           : source directory for getting the DSC/SOURCES (${SRCDIR})
+.TP
+      -f <file>    : file contains a list of package names
 .PP
 Will create the binary debian package for installing the <jarfile>.
 .PP
@@ -32,15 +36,20 @@ The script should be executed via a crontab, with one run as root
 and one as a normal user (for the Lintian checks).
 .SH EXAMPLE
 .TP
-lodstack_analyse_packages -P jar2deb -V 0.1 -J jar2deb.jar
+	lodstack_analyse_packages -LBF html
+.P
+which will generate run lintian, build the packages and create 
+the resport in html format.
 .SH BUGS
 .TP
-Serveral options not yet handled.
+Several options not yet handled.
 .SH AUTHOR
 .SS Paul Massey <paul.massey@tenforce.com>
 .SH SEE ALSO
-.SS https://github.com/XXXX/lodstack_analyse_packages
+.SS
+https://github.com/LinkedDataStack/LinkedDataStackConfigurator/tree/master/SupportPackages/lodstack_analyse_packages
 .TP
-The main homepage at github
+The main homepage on github
+
 
 
