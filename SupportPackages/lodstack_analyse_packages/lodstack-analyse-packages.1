@@ -12,6 +12,9 @@ problems which need to be dealt with. Finally, an attempt is made to
 build from source each of the packages in the appropriate environment.
 The environments need to be created beforehand. 
 .P
+This is a simple wrapper function for the lintian/piuparts calls for the
+lodstack repositories.
+.P
 Once the run is completed a report will be constructed in the appropriate 
 format (-F html or csv). The csv format is always produced.
 .TP
@@ -38,6 +41,10 @@ format (-F html or csv). The csv format is always produced.
 -S           - source directory for getting the DSC/SOURCES (${SRCDIR})
 .TP
 -f <file>    - file contains a list of package names
+.TP
+-I <regexp>  - ignore files which are left over with this pattern
+.TP
+-A           - use apt-get rather the dpkg to perform the installation.
 .PP
 Will create the binary debian package for installing the <jarfile>.
 .PP
