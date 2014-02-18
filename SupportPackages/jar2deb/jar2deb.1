@@ -24,8 +24,16 @@ D <description> - Description of the Package (default will be included)
 P <packageid>   - PackageID to use
 .TP
 J <jarfile>     - The jarfile to be put in the package.
+.TP
+F <csv file>    - containing bulk info for creating the packages
 .PP
 Will create the binary debian package for installing the <jarfile>.
+.SH CSV file Format
+.TP
+   jar-ref ; groupid ; artifactid ; version
+.TP
+If the jar-ref starts with http:// then the file will be retrieved first
+using wget.
 .SH EXAMPLE
 .TP
 jar2deb -P jar2deb -V 0.1 -J jar2deb.jar
@@ -33,12 +41,14 @@ jar2deb -P jar2deb -V 0.1 -J jar2deb.jar
 .TP
 Serveral options not yet handled.
 .SH AUTHOR
-.SS Paul Massey <paul.massey@tenforce.com>
+.P
+Paul Massey <paul.massey@tenforce.com>
 .SH ENVIRONMENT
 .P
 DENNAME and DEBEMAIL
 .SH SEE ALSO
-jar, dpkg-deb, dpkg, maven
+.P
+jar, dpkg-deb, dpkg, maven, maven-repo, wget
 .SS https://github.com/XXXX/jar2deb
 .TP
 The main homepage at github
