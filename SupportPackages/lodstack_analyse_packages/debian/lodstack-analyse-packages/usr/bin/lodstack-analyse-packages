@@ -22,6 +22,11 @@
 #               .... and so on for the other base setups required.
 #           4./ packages to be tested should downloaded and placed in 'packages'
 #
+# Note: 
+#    1./ Lintian will complain when executed as root, the intention is
+#        that the script will be run twice, once with reduced permissions
+#        for lintian and once as root for piuparts and pbuilder.
+#
 #############################################################################
 # Default Values
 #
@@ -32,7 +37,7 @@ SRCDIR=${RUNDATE}/srcdir
 #############################################################################
 
 function help {
-    echo $0 " -i -l -h -s
+    echo $0 " [options]*
       -h           : this message
       -v           : verbose
       -i <dir>     : incoming packages directory
@@ -45,6 +50,7 @@ function help {
       -s           : verify the signatures (default: no)
       -S           : source directory for getting the DSC/SOURCES (${SRCDIR})
       -f <file>    : file contains a list of package names
+      -I <regexp>  : Ignore the files flagged as left behind.
 ";
     exit 1;
 }
@@ -72,27 +78,31 @@ fi
 CLEANUP=no
 SRCBUILD=no
 REPORTFMT=csv
+USEAPT=no
 PBBASEDIR="/var/cache/pbuilder"
-BASETGZS="base-testing base-stable"
+BASETGZS="base-testing base-stable base-testing-upgraded"
+IGNORE=
 
 #############################################################################
 # recover and setup all the necessary variables
-while getopts "hCvi:lspLBf:S:db:P:xF" arg; do
+while getopts "hCvi:lspLBf:S:db:P:xF:A:" arg; do
     case $arg in
         h) help ;;
 	v) set -x ;;
 	x) PROCESS=no ;;
         p) PIUPARTS=yes ; DOWNLOADTEST=yes ;;
         s) VERIFYSIGS=yes ;;
-	L) LINTIAN=yes ;;
-        B) SRCBUILD=yes ; DOWNLOADTEST=yes ;;
 	d) DOWNLOADTEST=yes ;;
+	L) LINTIAN=yes ;;
+	A) USEAPT=yes ;;
+        B) SRCBUILD=yes ; DOWNLOADTEST=yes ;;
 	C) CLEANUP=yes ;;
 	b) shift ; BASETGZS=$1 ;;
         i) shift ; PACKAGEDIR=$1 ; PACKAGES=${PACKAGEDIR}/*.deb ;;
         P) shift ; PACKAGES=$1 ;;
 	l) shift ; LOGDIR=$1 ;;
 	S) shift ; SRCDIR=$1 ;;
+	I) shift ; IGNORE+=" -I $1 " ;;
         f) shift ; PACKAGELIST=$1; PACKAGES=`cat ${PACKAGELIST}` ;;
 	F) shift ; REPORTFMT=$1 ;;
 	*) help ;;
@@ -216,7 +226,7 @@ function dump_details {
     do
 	if [ -f "${LOGDIR}/${PKG}.${base}.log" ] 
 	then
-	    PASS=`hasvalue PASS ${LOGDIR}/${PKG}.${base}.log`
+	    PASS=`hasvalue "PASS: All tests." ${LOGDIR}/${PKG}.${base}.log`
 	    DETAILS="href:${PKG}.${base}.log"
 	    if [ "x${PASS}x" = "xyesx" ] 
 	    then 
@@ -238,6 +248,7 @@ function dump_details {
     fi
 
     BNAME=`basename ${PKG} "+nmu1_all.deb"`
+    BNAME=`basename $BNAME "+dfsg1-0ubuntu1_all.deb"`
     BNAME=`basename $BNAME "_amd64.deb"`
     BNAME=`basename $BNAME "_all.deb"`
     if [ -f "${SRCDIR}/${BNAME}.dsc" ]
@@ -289,7 +300,8 @@ function process_packages {
     mkdir -p ${LOGDIR}
     for i in ${PACKAGES}
     do 
-	FILE=`basename ${i}`;
+	FILE=`basename ${i}`
+	PACKAGE=`basename ${FILE} .deb | awk -F_ '{print $1;}'`
 	# echo "**** testing ${FILE} *****"
 	if [ "${VERIFYSIGS}" = "yes" ]
 	then
@@ -314,8 +326,17 @@ function process_packages {
 		BNAME=`basename ${b} .tgz`
 		# PERFORM Additional tests (not 12.04 version)
 		# OPTS=" --install-remove-install"
-		piuparts ${i} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
-		
+		if [ "${USEAPT}" = "yes" ]
+		then
+		    OPTS=" --apt ${PACKAGE} "
+		else
+		    OPTS=" ${i} "
+		fi
+		if [ "${IGNORE}" != "" ]
+		then
+		    OPTS+=" ${IGNORE} "
+		fi
+		piuparts ${OPTS} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
 		build_from_src ${i} ${BNAME}
 	    done
 	fi

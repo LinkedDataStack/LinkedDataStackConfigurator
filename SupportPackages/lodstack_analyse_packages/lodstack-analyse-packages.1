@@ -45,17 +45,65 @@ format (-F html or csv). The csv format is always produced.
 -I <regexp>  - ignore files which are left over with this pattern
 .TP
 -A           - use apt-get rather the dpkg to perform the installation.
-.PP
+.P
 Will create the binary debian package for installing the <jarfile>.
-.PP
+.P
 The script should be executed via a crontab, with one run as root
 and one as a normal user (for the Lintian checks).
-.SH EXAMPLE
-.TP
-	lodstack_analyse_packages -LBF html
+.SH SETUP
 .P
-which will generate run lintian, build the packages and create 
-the resport in html format.
+In order to use this command, the schoot environments will have to be
+created. This requires the following steps:
+.IP "Step 1)"
+sudo pbuilder --create --basetgz /var/cache/pbuilder/base-testing.tgz
+.IP "Step 2)"
+sudo pbuilder --update --basetgz /var/cache/pbuilder/base-testing.tgz
+.IP "Step 3)"
+sudo pbuilder --login --save-after-login --basetgz /var/cache/pbuilder/base-testing.tgz
+.P
+Then within the pbuilder environment, the following steps will be required 
+or variants of it depending on the environment being created:
+.IP a.)
+apt-get inst-all wget
+.IP b.)
+wget  http://stack.lod2.eu/lod2testing-repository.deb
+.IP c.)
+dpkg -i lod2testing-repository.deb
+.IP d.)
+apt-get update
+.P
+and so on for the other base setups required.
+.IP e.)
+exit the shell which will save the configuration of the environment.
+.IP "Step 4)"
+Packages to be tested should downloaded and placed in 'packages'
+.SH EXAMPLE
+.P
+The intention is that this script should be executed periodically under
+the control of crontab. Using 
+.B pbuilder
+will require that the script be ececuted with root permissions (at present),
+while the rest should be exceuted with limited permissions (The -L option
+will cause a message to be printed when the use executing lintian is root).
+The results file will depend only on access to the log and lintian results
+files (can should be run after the previous steps). An example could be:
+.TP
+sudo lodstack_analyse_packages -L -B -F html -I "*etc*"
+.P
+which will generate run lintian, build the packages and create the
+resport in html format (ignoring purge problems for *etc* files).
+.SH RESULTSFILE
+.P
+The results.html file will contain pointers to the generated CSV files
+(actually "|"sv files since it works okay then with org-mode). During
+the install-purge tests a distinction will be made between
+installation failures and purge failures (installation failures are
+critical and should be fixed). 
+.SH FINDING PROBLEMS
+.P
+Tracking down installation problems can be done using the created
+schroot environments, but the --save-after-login option should not be
+used since this would corrupt the environment for the other tests.
 .SH BUGS
 .P
 Report bugs to <paul.massey@tenforce.com>
@@ -65,10 +113,7 @@ Written by Paul Massey <paul.massey@tenforce.com>
 .SH SEE ALSO
 .P
 piuparts, pbuilder, schroot, lintian
-.SS
-https://github.com/LinkedDataStack/LinkedDataStackConfigurator/tree/master/SupportPackages/lodstack_analyse_packages
+.SH NOTES
 .TP
 The main homepage on github
-
-
-
+https://github.com/LinkedDataStack/LinkedDataStackConfigurator/tree/master/SupportPackages/lodstack_analyse_packages

@@ -2,7 +2,7 @@ Package: lodstack-analyse-packages
 Version: 1.0
 Architecture: all
 Maintainer: Fred <fred@tenforce.com>
-Installed-Size: 49
+Installed-Size: 50
 Depends: pbuilder, lintian, piuparts, wget, dpkg, schroot
 Section: misc
 Priority: extra
