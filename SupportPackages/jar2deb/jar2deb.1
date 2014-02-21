@@ -5,41 +5,50 @@ jar2deb \- generates a binary debian package for a given JAR file.
 .B jar2deb [option]*
 .SH DESCRIPTION
 .TP
-h               - this message
+-h               - will display this list of options.
 .TP
-v               - verbose
+-v               - verbose (mainly for debugging)
 .TP
-A <artifactid>  - artifactid
+-A <artifactid>  - artifactid
 .TP
-G <groupid>     - groupid
+-G <groupid>     - groupid
 .TP
-V <versionid>   - JAR file version
+-V <versionid>   - JAR file version
 .TP
-M <maintainer>  - The name of the maintainer
+-M <maintainer>  - The name of the maintainer
 .TP
-H <homepage>    - URL of the homepage
+-H <homepage>    - URL of the homepage
 .TP
-D <description> - Description of the Package (default will be included)
+-D <description> - Description of the Package (default will be included)
 .TP
-P <packageid>   - PackageID to use
+-P <packageid>   - PackageID to use
 .TP
-J <jarfile>     - The jarfile to be put in the package.
+-J <jarfile>     - The jarfile to be put in the package.
 .TP
-F <csv file>    - containing bulk info for creating the packages
-.PP
+-F <csv file>    - containing bulk info for creating the packages
+.P
 Will create the binary debian package for installing the <jarfile>.
 .SH CSV file Format
+.P
+The -F option will allow a set of jar files to be converted at once.
+However, the basic information still has to be provided. The file has the
+format:
 .TP
-   jar-ref ; groupid ; artifactid ; version
-.TP
+jar-ref ; groupid ; artifactid ; version
+.P
 If the jar-ref starts with http:// then the file will be retrieved first
 using wget.
 .SH EXAMPLE
+.P
+The following will convert the jar2deb.jar file found in the current
+directory into a debian binary package (placing the files and links
+where they are needed). 
 .TP
 jar2deb -P jar2deb -V 0.1 -J jar2deb.jar
 .SH BUGS
-.TP
-Serveral options not yet handled.
+.P
+Not all the options are correctly working, so the packages will have
+to be tested by installing them as needed.
 .SH AUTHOR
 .P
 Paul Massey <paul.massey@tenforce.com>
@@ -49,8 +58,8 @@ DENNAME and DEBEMAIL
 .SH SEE ALSO
 .P
 jar, dpkg-deb, dpkg, maven, maven-repo, wget
-.SS https://github.com/XXXX/jar2deb
-.TP
-The main homepage at github
+.SH NOTES
+.P
+The main homepage at github - https://github.com/XXXX/jar2deb
 
 

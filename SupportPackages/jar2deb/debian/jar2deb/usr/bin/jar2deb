@@ -1,9 +1,13 @@
 #!/bin/bash
+#############################################################################
 # Author  : P.A.Massey (paul.massey@tenforce.com)
 # Date    : 10/02/2014
 # Purpose : Given a JAR - convert it into a .DEB package which can be 
 #           installed.
-
+#
+# csv file format:
+#    JARFILE(href) groupid artifactid version
+#
 #############################################################################
 
 function help {
@@ -18,14 +22,16 @@ function help {
       -D <description> : Description of the Package (default will be included)
       -P <packageid>   : PackageID to use
       -J <jarfile>     : The jarfile to be put in the package.
+      -F <file>        : csv file with list of jar pointers
 " 
     exit 1;
 }
 
 #############################################################################
 MAINTAINER=${DEBNAME}
+FILE=
 
-while getopts "hvaA:G:V:M:H:D:P:J:" arg; do
+while getopts "hvaA:G:V:M:H:D:P:J:F:" arg; do
     case $arg in
         h) shift ; help ;;
 	v) shift ; set -x ;;
@@ -37,12 +43,11 @@ while getopts "hvaA:G:V:M:H:D:P:J:" arg; do
 	D) shift ; DESCRIPTION=$1 ; shift ;;
 	P) shift ; PACKAGEID=$1 ; shift ;;
 	J) shift ; JARFILE=$1 ; shift ;;
+	F) shift ; FILE=$1; shift;;
 	*) shift ;  help ;;
     esac
     OPTIND=1;
 done
-
-echo "*** j${JARFILE} p${PACKAGEID} v${VERSIONID}"
 
 #############################################################################
 # Recover an attribute value from the JAR MANIFEST.MF file which will be
@@ -127,39 +132,40 @@ function validate_package {
 #############################################################################
 
 function jar2deb { # jarfile 
+    projgrpid=$2
+    projartid=$3
+    projvsnid=$4
+    echo "*** JAR-$1 ${projgrpid} ${projartid} ${projvsnid} FILES-$5"
     injarfile=$1;
     inbasejarfile=`basename ${injarfile} .jar`
-    tempdir=${inbasejarfile}-tmp
+    # rm -rf ${tempdir}
 
-    #########################################
-    mkdir ${tempdir}
-    ( cd ${tempdir} ; jar xf ../${injarfile} META-INF/MANIFEST.MF )
-    # These values are not always present so empty value will require
-    # option to fill it in.
-    projgrpid=`getattribute_value $tempdir Implementation-Vendor-Id`
-    projvsnid=`getattribute_value $tempdir Implementation-Version`
-    echo ${projgrpid:-$2} ${projartid:-unknown} ${projvsnid:-$3}
-    rm -rf ${tempdir}
+    ORIGMAINDIR=${projartid:-$2}-${projvsnid:-$3}
 
-    ORIGMAINDIR=${projgrpid:-$2}-${projvsnid:-$3}
-
-    MAINDIR=lib${projgrpid:-$2}_${projvsnid:-$3}-java
+    MAINDIR=lib${projartid:-$2}_${projvsnid:-$3}-java
     echo orig-main-dir:${ORIGMAINDIR}
     
-    #########################################
+    ########################################################################
     # Create the "fake original" structure
 
     mkdir -p ${ORIGMAINDIR}/usr/share/java
     cp ${injarfile} ${ORIGMAINDIR}/usr/share/java
     
     pushd ${ORIGMAINDIR}/usr/share/java > /dev/null ;
-     ln -s ${injarfile} ${projgrpid:-$2}.jar ;
-     mkdir -p ../maven-repo/${projgrpid:-$2}/debian
-     pushd  ../maven-repo/${projgrpid:-$2} > /dev/null
-      create_pom . ${projgrpid:-$2} ${projgrpid:-$2} ${MAINDIR} ${projvsnid:-$3}
-      ln -s ../../../java/${injarfile} debian/${projgrpid:-$2}.jar ;
-      create_pom debian ${projgrpid:-$2} ${projgrpid:-$2} ${MAINDIR} debian
-      ln -s ../../java/${injarfile} ${projgrpid:-$2}.jar 
+     ln -s ${injarfile} ${projartid}.jar ;
+     pprojgrpid=`echo ${projgrpid} | tr "." "/"`
+     # Reduce the projartid to a relative path form.
+     lpath=`echo ${projgrpid} | awk -F. '{ for(i=1;i<=NF;i++) print ".."; }' | tr "\\n" "/"`
+     mkdir -p ../maven-repo/${pprojgrpid}/debian
+     pushd  ../maven-repo/${pprojgrpid} > /dev/null
+
+      create_pom . ${projgrpid} ${projartid} ${MAINDIR} ${projvsnid}
+      # Relative paths are used in the links so that the eventual
+      # unpacking will work okay.
+      ln -s ../../${lpath}java/${injarfile} debian/${projartid}.jar ;
+      create_pom debian ${projgrpid} ${projartid} ${MAINDIR} debian
+      ln -s ../${lpath}java/${injarfile} ${projartid}.jar 
+
      popd > /dev/null
      # tar cvzf ${ORIGMAINDIR}.orig.tgz ${ORIGMAINDIR} 
     popd > /dev/null
@@ -168,7 +174,7 @@ function jar2deb { # jarfile
     # Now build the MAIN package structure
     mv ${ORIGMAINDIR} ${MAINDIR}
     ( cd ${MAINDIR}
-      create_debian ${MAINDIR} ${projgrpid:-$2} ${projvsnid:-$3} )
+      create_debian ${MAINDIR} ${projartid:-$2} ${projvsnid:-$3} )
 
     #########################################    
     build_package ${MAINDIR} 
@@ -176,6 +182,24 @@ function jar2deb { # jarfile
 }
 
 #############################################################################
-jar2deb ${JARFILE} ${PACKAGEID} ${VERSIONID}
+if [ "x${FILE}x" != "xx" ]
+then
+    echo "*** Recovering details from ${FILE}"
+
+    IFS=";" 
+    cat ${FILE} | while read JARFILE GROUPID ARTIFACTID VERSIONID
+    do
+	echo "*** Check ${JARFILE}"
+	if [[ "${JARFILE}" =~ http://* ]]
+	then
+	    echo "*** Downloading Jar:${JARFILE}"
+	    wget ${JARFILE}
+	    JARFILE=`basename ${JARFILE}`
+	fi
+	jar2deb ${JARFILE} ${GROUPID} ${ARTIFACTID:-unknown} ${VERSIONID}
+    done
+else
+    jar2deb ${JARFILE} ${PACKAGEID} ${VERSIONID}
+fi
 exit 0
 #############################################################################
