@@ -1,3 +1,3 @@
 lodstack-analyse-packages usr/bin
+update_packages.sh usr/bin
 lodstack-analyse-packages.1 usr/share/man/man1
-

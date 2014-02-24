@@ -64,7 +64,7 @@ sudo pbuilder --login --save-after-login --basetgz /var/cache/pbuilder/base-test
 Then within the pbuilder environment, the following steps will be required 
 or variants of it depending on the environment being created:
 .IP a.)
-apt-get inst-all wget
+apt-get install wget
 .IP b.)
 wget  http://stack.lod2.eu/lod2testing-repository.deb
 .IP c.)
@@ -72,7 +72,8 @@ dpkg -i lod2testing-repository.deb
 .IP d.)
 apt-get update
 .P
-and so on for the other base setups required.
+and so on for the other base setups required (also updating any additional
+repository pointers which might be needed).
 .IP e.)
 exit the shell which will save the configuration of the environment.
 .IP "Step 4)"
@@ -91,7 +92,13 @@ files (can should be run after the previous steps). An example could be:
 sudo lodstack_analyse_packages -L -B -F html -I "*etc*"
 .P
 which will generate run lintian, build the packages and create the
-resport in html format (ignoring purge problems for *etc* files).
+resport in html format (ignoring purge problems for *etc* files). 
+.P
+Note: The above will look for packages in the "packages" directory so
+the -i <packageddir> option must be used to indicate where the packages
+to be tested are located. Likewise the results will be output in the
+directory indicated by indicated by the -l <logdir> option (this can be 
+made more specific using a command such as -l "/var/lodstack/`date +%Y/%m/%d`/logs".
 .SH RESULTSFILE
 .P
 The results.html file will contain pointers to the generated CSV files

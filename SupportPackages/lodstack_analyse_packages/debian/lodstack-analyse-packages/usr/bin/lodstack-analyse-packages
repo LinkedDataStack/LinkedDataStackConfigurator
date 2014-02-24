@@ -14,7 +14,7 @@
 #                             --basetgz /var/cache/pbuilder/base-testing.tgz
 #           3./ sudo pbuilder --login --save-after-login \
 #                             --basetgz /var/cache/pbuilder/base-testing.tgz
-#               $ apt-get install wget
+#               $ apt-get inst-all wget
 #               $ wget  http://stack.lod2.eu/lod2testing-repository.deb
 #               $ dpkg -i lod2testing-repository.deb
 #               $ apt-get update
@@ -83,30 +83,33 @@ PBBASEDIR="/var/cache/pbuilder"
 BASETGZS="base-testing base-stable base-testing-upgraded"
 IGNORE=
 
+echo "here"
 #############################################################################
 # recover and setup all the necessary variables
-while getopts "hCvi:lspLBf:S:db:P:xF:A:" arg; do
+while getopts "hCvi:lspLBf:S:db:P:xF:A:I:" arg; do
+    echo $arg/$1/${OPTARG}
     case $arg in
         h) help ;;
-	v) set -x ;;
-	x) PROCESS=no ;;
-        p) PIUPARTS=yes ; DOWNLOADTEST=yes ;;
-        s) VERIFYSIGS=yes ;;
-	d) DOWNLOADTEST=yes ;;
-	L) LINTIAN=yes ;;
-	A) USEAPT=yes ;;
-        B) SRCBUILD=yes ; DOWNLOADTEST=yes ;;
-	C) CLEANUP=yes ;;
-	b) shift ; BASETGZS=$1 ;;
-        i) shift ; PACKAGEDIR=$1 ; PACKAGES=${PACKAGEDIR}/*.deb ;;
-        P) shift ; PACKAGES=$1 ;;
-	l) shift ; LOGDIR=$1 ;;
-	S) shift ; SRCDIR=$1 ;;
-	I) shift ; IGNORE+=" -I $1 " ;;
-        f) shift ; PACKAGELIST=$1; PACKAGES=`cat ${PACKAGELIST}` ;;
-	F) shift ; REPORTFMT=$1 ;;
+	v) shift; set -x ;;
+	x) shift; PROCESS=no ;;
+        p) shift; PIUPARTS=yes ; DOWNLOADTEST=yes ;;
+        s) shift; VERIFYSIGS=yes ;;
+	d) shift; DOWNLOADTEST=yes ;;
+	L) shift; LINTIAN=yes ;;
+	A) shift; USEAPT=yes ;;
+        B) shift; SRCBUILD=yes ; DOWNLOADTEST=yes ;;
+	C) shift; CLEANUP=yes ;;
+	b) shift; BASETGZS=$1 ;;
+        i) shift ; PACKAGEDIR=$1 ; PACKAGES=${PACKAGEDIR}/*.deb ; shift ;;
+        P) shift ; PACKAGES=$1 ; shift ;;
+	l) shift ; LOGDIR=$1 ; shift ;;
+	S) shift ; SRCDIR=$1 ; shift ;;
+	I) shift ; IGNORE=" -I \"${OPTARG}\" " ; shift ;;
+        f) shift ; PACKAGELIST=$1; PACKAGES=`cat ${PACKAGELIST}` ; shift ;;
+	F) shift ; REPORTFMT=$1 ; shift ;;
 	*) help ;;
-      esac
+    esac
+    OPTIND=1
 done
 
 RESULTSFILE=${RESULTSFILE:-${LOGDIR}/results.${REPORTFMT}}
@@ -223,7 +226,7 @@ function dump_details {
     done
 
     for base in ${BASETGZS}
-    do
+    do 
 	if [ -f "${LOGDIR}/${PKG}.${base}.log" ] 
 	then
 	    PASS=`hasvalue "PASS: All tests." ${LOGDIR}/${PKG}.${base}.log`
@@ -232,8 +235,15 @@ function dump_details {
 	    then 
 		PASSFAIL+="${DETAILS}:PASS "
 	    else
-		FAIL=`hasvalue FAIL ${LOGDIR}/${PKG}.${base}.log`
-		PASSFAIL+="${DETAILS}:FAIL "
+		# Split the problems forms (failed to purge files and cannot install)
+		FAILPURGE=`hasvalue "FAIL: Installation and purging test" ${LOGDIR}/${PKG}.${base}.log`
+		if [ "x${FAILPURGE}x" = "xyesx" ] 
+		then
+		    PASSFAIL+="${DETAILS}:PURGE "
+		else 
+		    FAIL=`hasvalue FAIL ${LOGDIR}/${PKG}.${base}.log`
+		    PASSFAIL+="${DETAILS}:FAIL "
+		fi
 	    fi
 	else
 	    PASSFAIL+="unknown "	    
@@ -332,10 +342,11 @@ function process_packages {
 		else
 		    OPTS=" ${i} "
 		fi
-		if [ "${IGNORE}" != "" ]
+		if [ "x${IGNORE}x" != "xx" ]
 		then
 		    OPTS+=" ${IGNORE} "
 		fi
+		echo "piuparts ${OPTS} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log"
 		piuparts ${OPTS} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
 		build_from_src ${i} ${BNAME}
 	    done
