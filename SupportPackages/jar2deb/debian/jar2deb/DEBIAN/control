@@ -1,9 +1,9 @@
 Package: jar2deb
-Version: 1.0
+Version: 1.0-1
 Architecture: all
-Maintainer: Fred <fred@tenforce.com>
-Installed-Size: 45
-Depends: dpkg-deb, javahelper, fastjar
+Maintainer: Paul Massey <paul.massey@tenforce.com>
+Installed-Size: 44
+Depends: debhelper, javahelper, fastjar
 Section: misc
 Priority: extra
-Description: Does something
+Description: Packages a jar file as a binary debian package.

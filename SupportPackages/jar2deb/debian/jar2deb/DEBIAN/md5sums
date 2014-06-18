@@ -1,4 +1,4 @@
 4c4052b37b051fe3fd55807c3f9b287d  usr/bin/jar2deb
-43e837b0926f1d3a1455c076dbc432b5  usr/share/doc/jar2deb/changelog.gz
-c04584c658089e9fdd1a504932b27b0a  usr/share/doc/jar2deb/copyright
-4a7fd0277717bded26f692d0eec612b9  usr/share/man/man1/jar2deb.1.gz
+932504782362d23e18552bb6f59c639c  usr/share/doc/jar2deb/changelog.Debian.gz
+92152d8b876a7ca01ffa65c14260b507  usr/share/doc/jar2deb/copyright
+bdd6db07cfbbccfebcadb2f618857143  usr/share/man/man1/jar2deb.1.gz

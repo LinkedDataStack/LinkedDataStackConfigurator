@@ -1,5 +1,11 @@
+jar2deb (1.0-1) precise; urgency=low
+
+  * new version
+
+ -- Paul <paul.massey@tenforce.com>  Wed, 18 Jun 2014 14:21:43 +0200
+
 jar2deb (1.0) lod2; urgency=low
 
   * Initial release.
 
- -- Fred <fred@tenforce.com>  Thu, 04 Jul 2013 14:45:18 +0200
+ -- Paul <paul.massey@tenforce.com>  Wed, 18 Jun 2014 14:20:51 +0200

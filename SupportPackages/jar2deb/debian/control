@@ -2,15 +2,12 @@ Source: jar2deb
 Section: misc
 Priority: extra
 #Architecture: all
-Maintainer: Fred <fred@tenforce.com>
+Maintainer: Paul Massey <paul.massey@tenforce.com>
 Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.3
-#Homepage: https://github.com/AKSW/rdf-dataset-integration
-#Vcs-Git: git://github.com/AKSW/rdf-dataset-integration.git
 #Vcs-Browser: https://github.com/AKSW/rdf-dataset-integration
 
 Package: jar2deb
 Architecture: all
-Depends: dpkg-deb, javahelper, fastjar, ${misc:Depends}
-Description: Does something
-
+Depends: debhelper, javahelper, fastjar, ${misc:Depends}
+Description: Packages a jar file as a binary debian package.
