@@ -1,0 +1,16 @@
+Source: war2deb
+Section: misc
+Priority: extra
+#Architecture: all
+Maintainer: paul Massey <paul.massey@tenforce.com>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+#Homepage: https://github.com/AKSW/rdf-dataset-integration
+#Vcs-Git: git://github.com/AKSW/rdf-dataset-integration.git
+#Vcs-Browser: https://github.com/AKSW/rdf-dataset-integration
+
+Package: war2deb
+Architecture: all
+Depends: debhelper, javahelper, fastjar, ${misc:Depends}
+Description: Does something
+

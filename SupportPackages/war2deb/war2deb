@@ -1,0 +1,168 @@
+#!/bin/bash
+#############################################################################
+# Author  : P.A.Massey (paul.massey@tenforce.com)
+# Date    : 10/02/2014
+# Purpose : Given a WAR - convert it into a .DEB package which can be 
+#           installed.
+#
+# csv file format:
+#    WARFILE(href) groupid artifactid version
+#
+#############################################################################
+
+function help {
+    echo $0 " -i -l -h -s
+      -h               : this message
+      -v               : verbose
+      -A <artifactid>  : artifactid
+      -G <groupid>     : groupid
+      -V <versionid>   : JAR file version
+      -M <maintainer>  : The name of the maintainer
+      -H <homepage>    : URL of the homepage
+      -D <description> : Description of the Package (default will be included)
+      -P <packageid>   : PackageID to use
+      -W <warfile>     : The war file to be put in the package.
+      -S <postinst>    : The postinst script to use   
+      -F <file>        : csv file with list of jar pointers
+" 
+    exit 1;
+}
+
+#############################################################################
+MAINTAINER=${DEBNAME}
+FILE=
+
+while getopts "hvaA:G:V:M:H:D:P:W:F:S:" arg; do
+    case $arg in
+        h) shift ; help ;;
+				v) shift ; set -x ;;
+				A) shift ; ARTIFACTID=$1 ; shift ;;
+				V) shift ; VERSIONID=$1 ; shift ;;
+				M) shift ; MAINTAINER=$1 ; shift ;;
+				H) shift ; HOMEPAGE=$1 ; shift ;;
+				D) shift ; DESCRIPTION=$1 ; shift ;;
+				P) shift ; PACKAGEID=$1 ; shift ;;
+				W) shift ; WARFILE=$1 ; shift ;;
+				F) shift ; FILE=$1; shift;;
+				S) shift ; POSTINST=$1; shift;;
+				*) shift ;  help ;;
+    esac
+    OPTIND=1;
+done
+
+echo "postinst: " ${POSTINST}
+REMAINING="$@"
+
+#############################################################################
+# Create the basic BINARY control file, using the default values passed in.
+
+function create_binary_control {
+    local DEBIAN=$1
+    local PACKAGE=$2
+    local VERSIONID=$3
+    local MAINTAINER=$4
+    local DESCRIPTION=${DESCRIPTION}
+		local DEPENDS="tomcat7"
+    echo "Package: ${PACKAGE:-unknown-package}
+Version: ${VERSIONID:-0.1}
+Section: webapp
+Priority: optional
+Architecture: all
+Depends: ${DEPENDS}
+Maintainer: ${MAINTAINER:-unknown_maintainer}
+Description: ${DESCRIPTION:-Wrapper package for a WAR file}
+" > ${DEBIAN}/control;
+		echo "postinst: " ${POSTINST}
+    if [ -e "${POSTINST}" ]
+    then 
+				echo "copy postinst: ${POSTINST}"
+				cp ${POSTINST} ${DEBIAN}/postinst
+				chmod +x ${DEBIAN}/postinst
+    fi;
+}
+
+#############################################################################
+
+function create_debian {
+    local PNAME=$2
+    local PAUTH=${DEBNAME:-undef_DEBNAME}
+    local PEMAIL=${DEBEMAIL:-undef_DEBEMAIL}
+    local PVERSION=$3
+    mkdir -p DEBIAN
+    create_binary_control DEBIAN ${PNAME} ${PVERSION} ${PAUTH} ${PEMAIL}
+}
+
+#############################################################################
+
+function build_package {
+    echo "build_package: start attempt - $1"
+    dpkg-deb --build $1
+}
+
+#############################################################################
+
+function validate_package {
+    echo "validate_package: not done"
+}
+
+#############################################################################
+
+function war2deb { # War-file 
+    inwarfile=$1;
+    projgrpid=$2
+    projvsnid=$4
+    inbasewarfile=`basename ${inwarfile} .war`
+    echo "*** WAR-${inwarfile} ${projvsnid} "
+
+    ORIGMAINDIR=${projartid:-$2}-${projvsnid:-$3}
+    echo orig-main-dir:${ORIGMAINDIR}
+
+    MAINDIR=${projartid:-$2}_${projvsnid:-$3}
+    
+    ########################################################################
+    # Create the "fake original" structure
+
+    mkdir -p ${ORIGMAINDIR}/etc/${ORIGMAINDIR}
+    mkdir -p ${ORIGMAINDIR}/usr/default/tomcat
+    mkdir -p ${ORIGMAINDIR}/var/lib/tomcat7/webapps
+    cp ${inwarfile} ${ORIGMAINDIR}/var/lib/tomcat7/webapps
+    
+    echo remaining - ${REMAINING};
+		for i in ${REMAINING}
+  	do
+	  	  cp $i  ${ORIGMAINDIR}/etc/${ORIGMAINDIR} ;
+  	done
+
+    #########################################    
+    # Now build the MAIN package structure
+    mv ${ORIGMAINDIR} ${MAINDIR}
+    ( cd ${MAINDIR}
+      create_debian ${MAINDIR} ${projartid:-$2} ${projvsnid:-$3} )
+
+    #########################################    
+    build_package ${MAINDIR} 
+    validate_package
+}
+
+#############################################################################
+if [ "x${FILE}x" != "xx" ]
+then
+    echo "*** Recovering details from ${FILE}"
+
+    IFS=";" 
+    cat ${FILE} | while read WARFILE ARTIFACTID VERSIONID
+    do
+				echo "*** Check ${WARFILE}"
+				if [[ "${WARFILE}" =~ http://* ]]
+				then
+						echo "*** Downloading War:${WARFILE}"
+						wget ${WARFILE}
+						WARFILE=`basename ${WARFILE}`
+				fi
+				war2deb ${WARFILE} ${ARTIFACTID:-unknown} ${VERSIONID}
+		done
+else 
+		war2deb ${WARFILE} ${PACKAGEID} ${VERSIONID}
+fi
+exit 0
+#############################################################################

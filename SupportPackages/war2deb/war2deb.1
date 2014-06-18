@@ -1,0 +1,63 @@
+k.TH war2deb 1  "07/2013" "version 1.0" "USER COMMANDS"
+.SH NAME
+war2deb \- generates a binary debian package for a given WAR file.
+.SH SYNOPSIS
+.B war2deb [option]*
+.SH DESCRIPTION
+.TP
+-h               - will display this list of options.
+.TP
+-v               - verbose (mainly for debugging)
+.TP
+-M <maintainer>  - The name of the maintainer
+.TP
+-H <homepage>    - URL of the homepage
+.TP
+-D <description> - Description of the Package (default will be included)
+.TP
+-P <packageid>   - PackageID to use
+.TP
+-V <version>		 - Version of the package
+.TP
+-S <post-install> - postinstall script to be used
+.TP
+-W <warfile>     - The warfile to be put in the package.
+.TP
+-F <csv file>    - containing bulk info for creating the packages
+.P
+Will create the binary debian package for installing the <warfiles>.
+.SH CSV file Format
+.P
+The -F option will allow a set of .war files to be converted at once.
+However, the basic information still has to be provided. The file has the
+format:
+.TP
+war-ref ; packageid; versionid
+.P
+If the war-ref starts with http:// then the file will be retrieved first
+using wget.
+.SH EXAMPLE
+.P
+The following will convert the war file found in the current directory
+into a debian binary package (placing the files and links where they
+are needed).
+.TP
+war2deb -P war2deb -V 0.1 -J war2deb.war
+.SH BUGS
+.P
+Not all the options are correctly working, so the packages will have
+to be tested by installing them as needed.
+.SH AUTHOR
+.P
+Paul Massey <paul.massey@tenforce.com>
+.SH ENVIRONMENT
+.P
+DENNAME and DEBEMAIL
+.SH SEE ALSO
+.P
+war, dpkg-deb, dpkg, maven, maven-repo, wget, jar2deb
+.SH NOTES
+.P
+The main homepage at github - https://github.com/XXXX/war2deb
+
+

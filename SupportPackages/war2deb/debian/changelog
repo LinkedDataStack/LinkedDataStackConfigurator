@@ -1,0 +1,5 @@
+war2deb (1.0) lod2; urgency=low
+
+  * Initial release (based on jar2deb)
+
+ -- Paul Massey <paul.massey@tenforce.com>  Thu, 04 Jul 2013 14:45:18 +0200

@@ -1,0 +1,9 @@
+Package: war2deb
+Version: 1.0
+Architecture: all
+Maintainer: paul Massey <paul.massey@tenforce.com>
+Installed-Size: 43
+Depends: debhelper, javahelper, fastjar
+Section: misc
+Priority: extra
+Description: Does something
