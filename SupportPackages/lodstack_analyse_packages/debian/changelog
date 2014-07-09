@@ -1,3 +1,15 @@
+lodstack-analyse-packages (1.0-3) precise; urgency=low
+
+  * Added Linked Data references
+
+ -- Paul Massey <paul.massey@tenforce.com>  Tue, 08 Jul 2014 16:00:42 +0200
+
+lodstack-analyse-packages (1.0-2) precise; urgency=low
+
+  * cleaning up some lintian errors, etc.
+
+ -- Paul Massey <paul.massey@tenforce.com>  Mon, 29 Jun 2014 14:32:42 +0200
+
 lodstack-analyse-packages (1.0-1) precise; urgency=low
 
   * updated the packages list.

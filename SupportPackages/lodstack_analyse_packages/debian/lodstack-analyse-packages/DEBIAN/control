@@ -1,9 +1,12 @@
 Package: lodstack-analyse-packages
-Version: 1.0
+Version: 1.0-3
 Architecture: all
-Maintainer: Fred <fred@tenforce.com>
-Installed-Size: 52
-Depends: pbuilder, lintian, piuparts, wget, dpkg, schroot
+Maintainer: Paul Massey <paul.massey@tenforce.com>
+Installed-Size: 53
+Depends: pbuilder, lintian, piuparts, wget, schroot
 Section: misc
 Priority: extra
-Description: Does something.
+Description: (Linked Data) Attempts to install/purge packages in a number of environments.
+ (Linked Data) The environments are created using sbuld (see manual
+ page), and this script will attempt to exceute the install/purge of
+ the package (recording the success or failure).

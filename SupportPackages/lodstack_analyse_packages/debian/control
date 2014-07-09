@@ -2,7 +2,7 @@ Source: lodstack-analyse-packages
 Section: misc
 Priority: extra
 # Architecture: all
-Maintainer: Fred <fred@tenforce.com>
+Maintainer: Paul Massey <paul.massey@tenforce.com>
 Build-Depends: debhelper (>= 7.0.50~)
 Standards-Version: 3.9.3
 # Homepage: https://github.com/AKSW/rdf-dataset-integration
@@ -11,5 +11,8 @@ Standards-Version: 3.9.3
 
 Package: lodstack-analyse-packages
 Architecture: all
-Depends: pbuilder, lintian, piuparts, wget, dpkg, schroot, ${misc:Depends}
-Description: Does something.
+Depends: pbuilder, lintian, piuparts, wget, schroot, ${misc:Depends}
+Description: (Linked Data) Attempts to install/purge packages in a number of environments.
+ (Linked Data) The environments are created using sbuld (see manual
+ page), and this script will attempt to exceute the install/purge of
+ the package (recording the success or failure).

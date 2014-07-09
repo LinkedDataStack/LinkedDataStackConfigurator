@@ -1,5 +1,6 @@
-42acdcef1f38979684c935525db07fa8  usr/bin/lodstack-analyse-packages
-edc8e0d0b5acd247455ca27d234c8e17  usr/bin/update_packages.sh
-59b523ee612347db6b90e34c26109703  usr/share/doc/lodstack-analyse-packages/changelog.gz
-c04584c658089e9fdd1a504932b27b0a  usr/share/doc/lodstack-analyse-packages/copyright
-20243e649c3b4ee1f911ef73e4b53723  usr/share/man/man1/lodstack-analyse-packages.1.gz
+6c1130cf066dd10d6ce027381f3e66bb  usr/bin/lodstack-analyse-packages
+7e64ba3ab5a79f3454f0660e40484655  usr/bin/update_packages
+158f7010c4d08a283c6d3c87e0fdff23  usr/share/doc/lodstack-analyse-packages/changelog.Debian.gz
+09cd49c355d73d02db805da7fdc3e457  usr/share/doc/lodstack-analyse-packages/copyright
+6a13471eb9aed324437bdd6b982a827c  usr/share/man/man1/lodstack-analyse-packages.1.gz
+ed213e5e906a4526d41f462d0c96602c  usr/share/man/man1/update_packages.1.gz

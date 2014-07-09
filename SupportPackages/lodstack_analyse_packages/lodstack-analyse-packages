@@ -1,4 +1,4 @@
-#!/bin/bash
+/IGNORE#!/bin/bash
 #############################################################################
 # Author  : P.A.Massey
 # Date    : 2014
@@ -17,8 +17,9 @@
 #               $ apt-get inst-all wget
 #               $ wget  http://stack.lod2.eu/lod2testing-repository.deb
 #               $ dpkg -i lod2testing-repository.deb
+#                 add any additional repositories needed
 #               $ apt-get update
-#               $ exit the shell...
+#               $ exit the shell..
 #               .... and so on for the other base setups required.
 #           4./ packages to be tested should downloaded and placed in 'packages'
 #
@@ -30,6 +31,7 @@
 #############################################################################
 # Default Values
 #
+PATH="/usr/sbin:/usr/local/sbin:/sbin:/usr/bin:/bin:${PATH}"
 RUNDATE=`date +%Y/%m/%d`
 LOGDIR=${RUNDATE}/logs
 SRCDIR=${RUNDATE}/srcdir
@@ -81,7 +83,7 @@ REPORTFMT=csv
 USEAPT=no
 PBBASEDIR="/var/cache/pbuilder"
 BASETGZS="base-testing base-stable base-testing-upgraded"
-IGNORE=
+IGNORE=" -I /var/lib/ucf*"
 
 echo "here"
 #############################################################################
@@ -90,21 +92,21 @@ while getopts "hCvi:lspLBf:S:db:P:xF:A:I:" arg; do
     echo $arg/$1/${OPTARG}
     case $arg in
         h) help ;;
-	v) shift; set -x ;;
-	x) shift; PROCESS=no ;;
+				v) shift; set -x ;;
+				x) shift; PROCESS=no ;;
         p) shift; PIUPARTS=yes ; DOWNLOADTEST=yes ;;
         s) shift; VERIFYSIGS=yes ;;
-	d) shift; DOWNLOADTEST=yes ;;
-	L) shift; LINTIAN=yes ;;
-	A) shift; USEAPT=yes ;;
+				d) shift; DOWNLOADTEST=yes ;;
+				L) shift; LINTIAN=yes ;;
+				A) shift; USEAPT=yes ;;
         B) shift; SRCBUILD=yes ; DOWNLOADTEST=yes ;;
-	C) shift; CLEANUP=yes ;;
-	b) shift; BASETGZS=$1 ;;
+				C) shift; CLEANUP=yes ;;
+				b) shift; BASETGZS=$1 ;;
         i) shift ; PACKAGEDIR=$1 ; PACKAGES=${PACKAGEDIR}/*.deb ; shift ;;
         P) shift ; PACKAGES=$1 ; shift ;;
-	l) shift ; LOGDIR=$1 ; shift ;;
-	S) shift ; SRCDIR=$1 ; shift ;;
-	I) shift ; IGNORE=" -I \"${OPTARG}\" " ; shift ;;
+				l) shift ; LOGDIR=$1 ; shift ;;
+				S) shift ; SRCDIR=$1 ; shift ;;
+				I) shift ; IGNORE=" -I \"${OPTARG}\" " ; shift ;;
         f) shift ; PACKAGELIST=$1; PACKAGES=`cat ${PACKAGELIST}` ; shift ;;
 	F) shift ; REPORTFMT=$1 ; shift ;;
 	*) help ;;
@@ -217,55 +219,54 @@ function dump_details {
     # get messsed up.
     for base in ${BASETGZS}
     do
-	if [ -f "${SRCDIR}/${base}/${PKG}" ] 
-	then
-	   BUILT+="YES "
-	else
-	   BUILT+="NO "	    
-	fi
+				if [ -f "${SRCDIR}/${base}/${PKG}" ] 
+				then
+						BUILT+="YES "
+				else
+						BUILT+="NO "	    
+				fi
     done
-
+		
     for base in ${BASETGZS}
     do 
-	if [ -f "${LOGDIR}/${PKG}.${base}.log" ] 
-	then
-	    PASS=`hasvalue "PASS: All tests." ${LOGDIR}/${PKG}.${base}.log`
-	    DETAILS="href:${PKG}.${base}.log"
-	    if [ "x${PASS}x" = "xyesx" ] 
-	    then 
-		PASSFAIL+="${DETAILS}:PASS "
-	    else
-		# Split the problems forms (failed to purge files and cannot install)
-		FAILPURGE=`hasvalue "FAIL: Installation and purging test" ${LOGDIR}/${PKG}.${base}.log`
-		if [ "x${FAILPURGE}x" = "xyesx" ] 
-		then
-		    PASSFAIL+="${DETAILS}:PURGE "
-		else 
-		    FAIL=`hasvalue FAIL ${LOGDIR}/${PKG}.${base}.log`
-		    PASSFAIL+="${DETAILS}:FAIL "
-		fi
-	    fi
-	else
-	    PASSFAIL+="unknown "	    
-	fi
+				if [ -f "${LOGDIR}/${PKG}.${base}.log" ] 
+				then
+						PASS=`hasvalue "PASS: All tests." ${LOGDIR}/${PKG}.${base}.log`
+						DETAILS="href:${PKG}.${base}.log"
+						if [ "x${PASS}x" = "xyesx" ] 
+						then 
+								PASSFAIL+="${DETAILS}:PASS "
+						else
+								# Split the problems forms (failed to purge files and cannot install)
+								FAILPURGE=`hasvalue "FAIL: Installation and purging test" ${LOGDIR}/${PKG}.${base}.log`
+								if [ "x${FAILPURGE}x" = "xyesx" ] 
+								then
+										PASSFAIL+="${DETAILS}:PURGE "
+								else 
+										FAIL=`hasvalue FAIL ${LOGDIR}/${PKG}.${base}.log`
+										PASSFAIL+="${DETAILS}:FAIL "
+								fi
+						fi
+				else
+						PASSFAIL+="unknown "	    
+				fi
     done
 
     # Check for Lintian problems.
     if [ -f "${LOGDIR}/${PKG}.lintian" ]
     then
-	ERRS="href:${PKG}.lintian:"`hasvalueCount "E:" ${LOGDIR}/${PKG}.lintian`
-	WRNS="href:${PKG}.lintian:"`hasvalueCount "W:" ${LOGDIR}/${PKG}.lintian`
+				ERRS="href:${PKG}.lintian:"`hasvalueCount "E:" ${LOGDIR}/${PKG}.lintian`
+				WRNS="href:${PKG}.lintian:"`hasvalueCount "W:" ${LOGDIR}/${PKG}.lintian`
     fi
-
+		
     BNAME=`basename ${PKG} "+nmu1_all.deb"`
     BNAME=`basename $BNAME "+dfsg1-0ubuntu1_all.deb"`
     BNAME=`basename $BNAME "_amd64.deb"`
     BNAME=`basename $BNAME "_all.deb"`
     if [ -f "${SRCDIR}/${BNAME}.dsc" ]
     then
-	DSCACC=yes
+				DSCACC=yes
     fi
-
     dump_result_line ${FMT} `date +"%Y/%m/%d"` ${PKG} \
                      ${PASSFAIL:-unknown} ${ERRS:-unknown} \
                      ${WRNS:-unknown} ${DSCACC} ${BUILT:-error}
@@ -310,54 +311,54 @@ function process_packages {
     mkdir -p ${LOGDIR}
     for i in ${PACKAGES}
     do 
-	FILE=`basename ${i}`
-	PACKAGE=`basename ${FILE} .deb | awk -F_ '{print $1;}'`
-	# echo "**** testing ${FILE} *****"
-	if [ "${VERIFYSIGS}" = "yes" ]
-	then
-	    VERIFYSIGSOPT=""
-	else
-	    VERIFYSIGSOPT="--do-not-verify-signatures"
-	fi
-
-	if [ "$DOWNLOADTEST" = "yes" ]
-	then
-	    download_test ${FILE}
-	fi
-
-	if [ "$PIUPARTS" = "yes" ]
-	then
-	    # Run the test of the package for each of the built environments
-	    # - this will likely fail for the stable (with testing packages).
-	    #
-	    for b in ${BASETGZS}
-	    do
-		# Strip off the .tgz, just in case it was added.
-		BNAME=`basename ${b} .tgz`
-		# PERFORM Additional tests (not 12.04 version)
-		# OPTS=" --install-remove-install"
-		if [ "${USEAPT}" = "yes" ]
-		then
-		    OPTS=" --apt ${PACKAGE} "
-		else
-		    OPTS=" ${i} "
-		fi
-		if [ "x${IGNORE}x" != "xx" ]
-		then
-		    OPTS+=" ${IGNORE} "
-		fi
-		echo "piuparts ${OPTS} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log"
-		piuparts ${OPTS} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
-		build_from_src ${i} ${BNAME}
-	    done
-	fi
-
-	if [ "$LINTIAN" = "yes" ]
-	then
-	    lintian ${i} > ${LOGDIR}/${FILE}.lintian
-	fi
-	# So something is visible when processing
-	dump_details csv ${FILE}
+				FILE=`basename ${i}`
+				PACKAGE=`basename ${FILE} .deb | awk -F_ '{print $1;}'`
+				# echo "**** testing ${FILE} *****"
+				if [ "${VERIFYSIGS}" = "yes" ]
+				then
+						VERIFYSIGSOPT=""
+				else
+						VERIFYSIGSOPT="--do-not-verify-signatures"
+				fi
+				
+				if [ "$DOWNLOADTEST" = "yes" ]
+				then
+						download_test ${FILE}
+				fi
+				
+				if [ "$PIUPARTS" = "yes" ]
+				then
+						# Run the test of the package for each of the built environments
+						# - this will likely fail for the stable (with testing packages).
+						#
+						for b in ${BASETGZS}
+						do
+								# Strip off the .tgz, just in case it was added.
+								BNAME=`basename ${b} .tgz`
+								# PERFORM Additional tests (not 12.04 version)
+								# OPTS=" --install-remove-install"
+								if [ "${USEAPT}" = "yes" ]
+								then
+										OPTS=" --apt ${PACKAGE} "
+								else
+										OPTS=" ${i} "
+								fi
+								if [ "x${IGNORE}x" != "xx" ]
+								then
+										OPTS+=" ${IGNORE} "
+								fi
+								echo "piuparts ${OPTS} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log"
+								piuparts -v ${OPTS} ${VERIFYSIGSOPT} --basetgz=${PBBASEDIR}/${BNAME}.tgz > ${LOGDIR}/${FILE}.${BNAME}.log
+								build_from_src ${i} ${BNAME}
+						done
+				fi
+				
+				if [ "$LINTIAN" = "yes" ]
+				then
+						lintian ${i} > ${LOGDIR}/${FILE}.lintian
+				fi
+				# So something is visible when processing
+				dump_details csv ${FILE}
     done
   fi
 }
@@ -367,17 +368,17 @@ function process_packages {
 function construct_report { # fmt resultsfile
     echo construct_report $1 $2
     ( 
-	dump_header $1
-	BUILDS=`echo ${BASETGZS} | sed s/base/build/g`
-	INSPRG=`echo ${BASETGZS} | sed s/base/inst-purge/g`
-	dump_result_line $1-header "TimeStamp" "Package" ${INSPRG} "LintErrs" \
+				dump_header $1
+				BUILDS=`echo ${BASETGZS} | sed s/base/build/g`
+				INSPRG=`echo ${BASETGZS} | sed s/base/inst-purge/g`
+				dump_result_line $1-header "TimeStamp" "Package" ${INSPRG} "LintErrs" \
             "LintWarn" "DSCAccess" ${BUILDS}
-	for i in ${PACKAGES}
-	do 
-	    FILE=`basename ${i}`
-	    dump_details $1 ${FILE}
-	done
-	dump_footer $1
+				for i in ${PACKAGES}
+				do 
+						FILE=`basename ${i}`
+						dump_details $1 ${FILE}
+				done
+				dump_footer $1
     ) > $2
 }
 
@@ -399,8 +400,8 @@ function lintian_summaries {
     PROB=`cat ${LOGDIR}/*.lintian|awk -F: '{print $3;}'|awk '{print $1;}'|sort|uniq`
     for i in ${PROB}
     do 
-	Errors=`egrep ${i} ${LOGDIR}/*.lintian | wc -l`
-	dump_result_line csv `date +"%Y/%m/%d"` ${i} ${Errors}
+				Errors=`egrep ${i} ${LOGDIR}/*.lintian | wc -l`
+				dump_result_line csv `date +"%Y/%m/%d"` ${i} ${Errors}
     done > ${LOGDIR}/lintian.csv
 }
 
