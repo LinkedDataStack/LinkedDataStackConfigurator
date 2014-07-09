@@ -1,0 +1,2 @@
+edcat-base-master/ext/dev/*.properties etc/edcat
+edcat-base-master/edcat.war var/lib/tomcat7/webapps

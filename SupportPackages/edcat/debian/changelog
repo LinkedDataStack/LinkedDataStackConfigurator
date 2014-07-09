@@ -1,0 +1,29 @@
+edcat (1.0-5) precise; urgency=low
+
+  * Updated the title to include Linked Data
+
+ -- Paul <paul.massey@tenforce.com>  Tue, 07 Jul 2014 15:45:51 +0200
+
+edcat (1.0-4) precise; urgency=low
+
+  * Updated the description to include Linked Data
+
+ -- Paul <paul.massey@tenforce.com>  Tue, 07 Jul 2014 15:20:51 +0200
+
+edcat (1.0-3) precise; urgency=low
+
+  * Removed sudo call from postinst script (will be executed as root)
+
+ -- Paul <paul.massey@tenforce.com>  Tue, 07 Jul 2014 10:20:51 +0200
+
+edcat (1.0-2) precise; urgency=low
+
+  * Cleaning up lintian problems
+
+ -- Paul <paul.massey@tenforce.com>  Mon, 29 Jun 2014 10:20:51 +0200
+
+edcat (1.0-1) precise; urgency=low
+
+  * Initial release.
+
+ -- Paul <paul.massey@tenforce.com>  Wed, 18 Jun 2014 14:20:51 +0200

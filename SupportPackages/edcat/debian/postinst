@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+echo "webapp-edcat postinst setup"
+chown tomcat7:tomcat7 /etc/edcat
+echo 'JAVA_OPTS="$JAVA_OPTS -Dext.properties.dir=/etc/edcat/"' | tee -a /etc/default/tomcat7
+if which invoke-rc.d >/dev/null 2>&1; then
+    invoke-rc.d tomcat7 restart
+else
+    /etc/init.d/tomcat7 restart
+fi
+echo "http://localhost:8080/edcat/catalogs should now be accessible"

@@ -1,0 +1,10 @@
+Package: edcat
+Version: 1.0-5
+Architecture: all
+Maintainer: Paul Massey <paul.massey@tenforce.com>
+Installed-Size: 10113
+Depends: tomcat7, virtuoso-opensource
+Section: misc
+Priority: extra
+Description: (Linked Data) Webapp for edcat REST service (for tomcat7)
+ (Linked Data) Edcat is a webapp for tomcat7.

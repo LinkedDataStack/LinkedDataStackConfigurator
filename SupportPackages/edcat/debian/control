@@ -1,0 +1,14 @@
+Source: edcat
+Section: misc
+Priority: extra
+#Architecture: all
+Maintainer: Paul Massey <paul.massey@tenforce.com>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.9.3
+#Vcs-Browser: https://github.com/AKSW/rdf-dataset-integration
+
+Package: edcat
+Architecture: all
+Depends: tomcat7, virtuoso-opensource, ${misc:Depends}
+Description: (Linked Data) Webapp for edcat REST service (for tomcat7)
+ (Linked Data) Edcat is a webapp for tomcat7.
