@@ -2,11 +2,11 @@
 #############################################################################
 # Author  : P.A.Massey (paul.massey@tenforce.com)
 # Date    : 10/02/2014
-# Purpose : Given a JAR - convert it into a .DEB package which can be 
+# Purpose : Given a WAR - convert it into a .DEB package which can be 
 #           installed.
 #
 # csv file format:
-#    JARFILE(href) groupid artifactid version
+#    WARFILE(href) groupid artifactid version
 #
 #############################################################################
 

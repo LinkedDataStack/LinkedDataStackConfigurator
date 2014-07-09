@@ -1,4 +1,4 @@
-12502dffc77cc84fc726efee3a1a2135  usr/bin/war2deb
-94021a1dcf66aa2ca0b5c5f529e83ba3  usr/share/doc/war2deb/changelog.gz
-c04584c658089e9fdd1a504932b27b0a  usr/share/doc/war2deb/copyright
+e123c6156cf2848097e0943e40227ccb  usr/bin/war2deb
+cb3cf7fe0c960726e948fad45e2247ea  usr/share/doc/war2deb/changelog.Debian.gz
+08c0c8d7eef95926cd9c360cf529d87e  usr/share/doc/war2deb/copyright
 59dbcb94fa9a78b6eb71d0c3c72cf6ae  usr/share/man/man1/war2deb.1.gz

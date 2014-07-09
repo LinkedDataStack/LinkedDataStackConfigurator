@@ -1,3 +1,21 @@
+war2deb (1.0-3) lod2; urgency=low
+
+  * Included Linked data in title
+
+ -- Paul Massey <paul.massey@tenforce.com>  Tue, 08 Jul 2013 15:57:18 +0200
+
+war2deb (1.0-2) lod2; urgency=low
+
+  * Included Linked data in description for Bert
+
+ -- Paul Massey <paul.massey@tenforce.com>  Tue, 08 Jul 2013 14:45:18 +0200
+
+war2deb (1.0-1) lod2; urgency=low
+
+  * Removed some of the lintian erros
+
+ -- Paul Massey <paul.massey@tenforce.com>  Mon, 29 Jul 2013 14:45:18 +0200
+
 war2deb (1.0) lod2; urgency=low
 
   * Initial release (based on jar2deb)

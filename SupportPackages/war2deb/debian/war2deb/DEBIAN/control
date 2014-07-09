@@ -1,9 +1,10 @@
 Package: war2deb
-Version: 1.0
+Version: 1.0-3
 Architecture: all
 Maintainer: paul Massey <paul.massey@tenforce.com>
 Installed-Size: 43
 Depends: debhelper, javahelper, fastjar
 Section: misc
 Priority: extra
-Description: Does something
+Description: (Linked Data) Packages a single WAR file.
+ (Linked Data) Installs the war file in the correct place for a tomcat7 application

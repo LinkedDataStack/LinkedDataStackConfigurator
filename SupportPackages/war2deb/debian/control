@@ -12,5 +12,7 @@ Standards-Version: 3.9.3
 Package: war2deb
 Architecture: all
 Depends: debhelper, javahelper, fastjar, ${misc:Depends}
-Description: Does something
+Description: (Linked Data) Packages a single WAR file.
+ (Linked Data) Installs the war file in the correct place for a tomcat7 application
+
 
