@@ -10,4 +10,5 @@ Standards-Version: 3.9.3
 Package: jar2deb
 Architecture: all
 Depends: debhelper, javahelper, fastjar, ${misc:Depends}
-Description: Packages a jar file as a binary debian package.
+Description: (Linked Data) Packages a JAR file as a binary debian package.
+ (Linked Data) Allows the sharing of the JAR files across applications.
