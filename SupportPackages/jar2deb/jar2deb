@@ -27,27 +27,36 @@ function help {
     exit 1;
 }
 
+if [ $# -eq 0 ] ; then 
+		echo "Error: No parameters specified"
+    help
+fi
+
 #############################################################################
 MAINTAINER=${DEBNAME}
+ARTIFACTID=unknownartid
+GROUPID=unknowngrpid
 FILE=
 
 while getopts "hvaA:G:V:M:H:D:P:J:F:" arg; do
     case $arg in
         h) shift ; help ;;
-	v) shift ; set -x ;;
-	A) shift ; ARTIFACTID=$1 ; shift ;;
-	G) shift ; GROUPID=$1 ; shift ;;
-	V) shift ; VERSIONID=$1 ; shift ;;
-	M) shift ; MAINTAINER=$1 ; shift ;;
-	H) shift ; HOMEPAGE=$1 ; shift ;;
-	D) shift ; DESCRIPTION=$1 ; shift ;;
-	P) shift ; PACKAGEID=$1 ; shift ;;
-	J) shift ; JARFILE=$1 ; shift ;;
-	F) shift ; FILE=$1; shift;;
-	*) shift ;  help ;;
+				v) shift ; set -x ;;
+				A) shift ; ARTIFACTID=$1 ; shift ;;
+				G) shift ; GROUPID=$1 ; shift ;;
+				V) shift ; VERSIONID=$1 ; shift ;;
+				M) shift ; MAINTAINER=$1 ; shift ;;
+				H) shift ; HOMEPAGE=$1 ; shift ;;
+				D) shift ; DESCRIPTION=$1 ; shift ;;
+				P) shift ; PACKAGEID=$1 ; shift ;;
+				J) shift ; JARFILE=$1 ; shift ;;
+				F) shift ; FILE=$1; shift;;
+				*) shift ;  help ;;
     esac
     OPTIND=1;
 done
+
+echo ${GROUPID} ${JARFILE} ${ARTIFACTID}
 
 #############################################################################
 # Recover an attribute value from the JAR MANIFEST.MF file which will be
@@ -131,7 +140,7 @@ function validate_package {
 
 #############################################################################
 
-function jar2deb { # jarfile 
+function jar2deb { # jarfile groupid artifactid version
     projgrpid=$2
     projartid=$3
     projvsnid=$4
@@ -189,17 +198,18 @@ then
     IFS=";" 
     cat ${FILE} | while read JARFILE GROUPID ARTIFACTID VERSIONID
     do
-	echo "*** Check ${JARFILE}"
-	if [[ "${JARFILE}" =~ http://* ]]
-	then
-	    echo "*** Downloading Jar:${JARFILE}"
-	    wget ${JARFILE}
-	    JARFILE=`basename ${JARFILE}`
-	fi
-	jar2deb ${JARFILE} ${GROUPID} ${ARTIFACTID:-unknown} ${VERSIONID}
+				echo "*** Check ${JARFILE}"
+				if [[ "${JARFILE}" =~ http://* ]]
+				then
+						echo "*** Downloading Jar:${JARFILE}"
+						wget ${JARFILE}
+						JARFILE=`basename ${JARFILE}`
+				fi
+				jar2deb ${JARFILE} ${GROUPID:-unknowngrp} ${ARTIFACTID:-unknown} ${VERSIONID}
     done
 else
-    jar2deb ${JARFILE} ${PACKAGEID} ${VERSIONID}
+		echo "jar2deb ${JARFILE} ${GROUPID} ${ARTIFACTID:-unknown} ${VERSIONID}"
+    jar2deb ${JARFILE} ${GROUPID:-unknowngrp} ${ARTIFACTID:-unknown} ${VERSIONID}
 fi
 exit 0
 #############################################################################

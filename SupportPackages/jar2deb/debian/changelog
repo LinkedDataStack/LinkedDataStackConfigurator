@@ -1,3 +1,9 @@
+jar2deb (1.0-4) precise; urgency=low
+
+  * New version of the script
+
+ -- Paul <paul.massey@tenforce.com>  Thu, 04 Sep 2014 13:00:00:43 +0200
+
 jar2deb (1.0-3) precise; urgency=low
 
   * Include (Linked Data) in some places
