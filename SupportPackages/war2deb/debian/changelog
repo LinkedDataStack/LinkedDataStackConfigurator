@@ -1,3 +1,9 @@
+war2deb (1.0-4) lod2; urgency=low
+
+  * updated script 
+
+ -- Paul Massey <paul.massey@tenforce.com>  Thu, 04 Sept 2014 12:38:18 +0200
+
 war2deb (1.0-3) lod2; urgency=low
 
   * Included Linked data in title

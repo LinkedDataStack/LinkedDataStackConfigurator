@@ -11,22 +11,27 @@
 #############################################################################
 
 function help {
-    echo $0 " -i -l -h -s
+    echo $0 " -P package -V versionid -W warfile
       -h               : this message
       -v               : verbose
       -A <artifactid>  : artifactid
       -G <groupid>     : groupid
-      -V <versionid>   : JAR file version
+      -V <versionid>   : version number
       -M <maintainer>  : The name of the maintainer
       -H <homepage>    : URL of the homepage
       -D <description> : Description of the Package (default will be included)
       -P <packageid>   : PackageID to use
-      -W <warfile>     : The war file to be put in the package.
+      -W <warfile>     : The WAR file to be put in the package.
       -S <postinst>    : The postinst script to use   
-      -F <file>        : csv file with list of jar pointers
+      -F <file>        : csv file with list of WAR pointers
 " 
     exit 1;
 }
+
+if [ $# -eq 0 ]; then
+   echo "Error: no arguments specified"
+   help
+fi
 
 #############################################################################
 MAINTAINER=${DEBNAME}
